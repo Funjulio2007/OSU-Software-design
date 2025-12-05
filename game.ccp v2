@@ -26,6 +26,16 @@ void endscreen();
 // These are the gobal variables. Define them here so they can be used throught the code
 
 //Function calls occur here and gameplay
+
+//Image classes
+
+FEHImage rocket;
+FEHImage streetbackground;
+FEHImage lantern;
+FEHImage mainscreen;
+FEHImage obama;   // moved to global to avoid repeated Open() calls
+FEHImage skull;   // moved to global to avoid repeated Open() calls
+
 int main(){
     float x_position,y_position;
     float *xptr, *yptr; // put pointer 
@@ -34,6 +44,15 @@ int main(){
     yptr = &y_position;
 // declare an array of four icons called menu
    // make the menu pop up
+
+
+//open images
+lantern.Open("spotted_lanternfly.png");
+rocket.Open("Rocketship.png");
+streetbackground.Open("Streetbackgroundv1.png");
+mainscreen.Open("background_for_mainscreen.png");
+obama.Open("Obamna.png");               // open once globally
+skull.Open("backgroundscreenskull.png"); // open once globally
 
 
    // making background music
@@ -52,14 +71,12 @@ int main(){
    If click location is within a button, perform that button's function*/
 while(valid==0)
 {
-  LCD.Touch (xptr, yptr);
+  // wait for a real touch event (fixed stray semicolon bug)
+  while (!LCD.Touch (xptr, yptr)) { }
   printf ("\nThe x-coordinate is %f \n The y-coordinate is %f\n", x_position, y_position);
 
 /*Wait for Touch*/
-while (!LCD.Touch (xptr, yptr));
-{
-   
-}
+/* (removed the stray semicolon so the loop actually waits) */
 
 
     if ( x_position > 160.00 && x_position <314.00 && y_position > 12.00 && y_position < 120.00) // this is for the tutorial
@@ -130,14 +147,13 @@ mainmenu();
     
 }
 
-
-// This is the function to make the menu appear 
+ // This is the function to make the menu appear 
 void mainmenu()
 {
   // declare an array of four icons called menu
 LCD.SetFontScale (1);
-  FEHImage mainscreen;
-  mainscreen.Open("background_for_mainscreen.png");
+ 
+  
   mainscreen.Draw(0,0);
     FEHIcon::Icon menu[4];
 
@@ -148,8 +164,7 @@ LCD.SetFontScale (1);
     // margins of 10 and left and right margins of 5
     // with the menu labels, gold borders, and green text
     FEHIcon::DrawIconArray(menu, 2, 2, 10, 10, 5, 5, menu_labels, SCARLET, GRAY);
-    FEHImage lanternfly ("spotted_lanternfly.png"); // these images are best as 30X30
-    lanternfly.Draw (100,100);
+    lantern.Draw (100,100);
 
     // make button a quit stats button
     LCD.SetFontColor(GREEN);
@@ -158,11 +173,10 @@ LCD.SetFontScale (1);
    
 }
 
-
-//refreshes the screen in the tutorial after a movement or projectile happens
+ //refreshes the screen in the tutorial after a movement or projectile happens
 void tutorial_refresh(float x, float y)
 {
-    FEHImage rocket ("Rocketship.png");
+    
     LCD.SetFontScale (1);
 LCD.SetBackgroundColor (SCARLET);
 LCD.Clear();
@@ -185,7 +199,7 @@ LCD.Update();
 
 
 
-//runs the tutorial section of the menu
+ //runs the tutorial section of the menu
 void tutorial ()
 {
     int quit;
@@ -264,15 +278,15 @@ else if (Keyboard.isPressed (KEY_DOWN) && y_position != 210)
 mainmenu();
 }
 
-void background_refresh (float x, float y, float lanternflyx,float lanternflyy, int enemy_hit)
+
+
+    void background_refresh (float x, float y, float lanternflyx,float lanternflyy, int enemy_hit)
 
 {
     LCD.Clear();
-FEHImage streetbackground;
-streetbackground.Open("Streetbackgroundv1.png");
+
 streetbackground.Draw(0,0);
-FEHImage rocket;
-rocket.Open("Rocketship.png");
+
 rocket.Draw(x,y);
 if (enemy_hit <= 8)
 {
@@ -285,10 +299,10 @@ LCD.Update();
 void enemiesmove(float  x_position, float y_position)
 {
    
-    FEHImage lantern;
    
 
-    lantern.Open("spotted_lanternfly.png");
+
+    
    
     lantern.Draw(x_position,y_position);lantern.Draw(x_position+10,y_position);lantern.Draw(x_position+20,y_position);
     lantern.Draw(x_position+30,y_position);lantern.Draw(x_position+40,y_position);
@@ -299,7 +313,7 @@ void enemiesmove(float  x_position, float y_position)
 {
     int quit;
     float x, y; //click trash variables
-    int i = 0, direction = 1, enemy_hit = 0;
+    int direction = 1, enemy_hit = 0;
     float time_current, time_move, time_difference, enemy_timer, enemycdown, time_shoot, shoot_cooldown, move_cooldown = 0.15;
     time_current=TimeNow();// hmakeing 
 time_move = TimeNow();
@@ -309,8 +323,8 @@ FEHSound hit ("laser_hit.wav");
     FEHSound highPEW("highPEW.wav");
     FEHSound strongPEW("strongProjectile.wav");
     float rocketx = 120, rockety = 200,lanternflyx = 120,lanternflyy = 0;
-FEHImage obama;
-obama.Open ("Obamna.png");
+// FEHImage obama;  (removed local image)
+ // obama.Open ("Obamna.png");  (now opened globally)
     /*Introduction*/
     LCD.SetBackgroundColor (BLACK);
     LCD.Clear();
@@ -362,8 +376,6 @@ while (!LCD.Touch (&x, &y))
     // This background will be worked on
     //draw just the background
     LCD.Clear();
-FEHImage streetbackground;
-streetbackground.Open("Streetbackgroundv1.png");
 streetbackground.Draw(0,0);
 Sleep (1.0);
 LCD.SetFontColor (SCARLET);
@@ -412,7 +424,7 @@ else if (Keyboard.isPressed (KEY_DOWN) && rockety < 190 &&time_difference > .15)
         rockety = rockety + move_increment; //increment x position
        time_move = TimeNow();
     }
-    else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .15) 
+    else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .20) 
     {
         int g=Random.RandInt()%2;
         if (g==0)
@@ -495,11 +507,9 @@ else if (Keyboard.isPressed (KEY_DOWN) && rockety < 190 &&time_difference > .15)
     }
     
     
-    i++;
+    Sleep (5); //slow down the loop
         background_refresh (rocketx, rockety, lanternflyx, lanternflyy, enemy_hit);
       
-        LCD.Update();
-        Sleep (8); //slow down the loop
      // I want to figure out hoow to get the enemies to move down the screen
 }
 LCD.Clear();
@@ -526,13 +536,14 @@ void endscreen()
     LCD.Clear();
     LCD.SetBackgroundColor(BLACK);
     LCD.Clear();
-    FEHImage skull;
-    skull.Open ("backgroundscreenskull.png");
+    // FEHImage skull; (removed local image - using global skull opened in main)
+    // skull.Open ("backgroundscreenskull.png"); (now opened once in main)
     skull.Draw(30,50);
     LCD.SetFontColor(WHITE);
     LCD.SetFontScale(1);
 
     LCD.Write("       GAME OVER");
+    LCD.Update();
     
     
 }
