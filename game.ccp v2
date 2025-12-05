@@ -290,7 +290,6 @@ void enemiesmove(float  x_position,float y_position )
     lantern.Draw(x_position+30,y_position);lantern.Draw(x_position+40,y_position);
     
   
-    Sleep(20);// something is going wrong here
     
 }
 
@@ -408,6 +407,7 @@ else if (lanternflyx > 260) //change direction and move enemies down
         Sleep (20); //slow down the loop
      // I want to figure out hoow to get the enemies to move down the screen
 }
+LCD.Clear();
 mainmenu();
 }
 
