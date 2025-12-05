@@ -298,6 +298,7 @@ void enemiesmove(float  x_position, float y_position)
     void start () // this is in its sample mode. Need to add stuff 
 {
     int quit;
+    float x, y; //click trash variables
     int i = 0, direction = 1, enemy_hit = 0;
     float time_current, time_move, time_difference, enemy_timer, enemycdown, time_shoot, shoot_cooldown, move_cooldown = 0.15;
     time_current=TimeNow();// hmakeing 
@@ -315,29 +316,49 @@ obama.Open ("Obamna.png");
     LCD.Clear();
     LCD.SetFontScale (0.5);
     LCD.WriteLine ("Machine, you have been called for a higher purpose...");\
+    LCD.WriteAt ("Click to continue", 180, 200);
     obama.Draw (100, 100);
     LCD.Update();
-    Sleep (5.0);
+ while (!LCD.Touch (&x, &y))
+{
+
+}
     LCD.Clear();
       obama.Draw (100, 100);
+       LCD.WriteAt ("Click to continue", 180, 200);
     Sleep (500);
     LCD.WriteLine ("You must save the city of columbus\nfrom the spotted lanternfly...");
-    Sleep (5.0);
+while (!LCD.Touch (&x, &y)) //each of these is just to wait for the user's click before continuing
+{
+
+}
     LCD.Clear();
       obama.Draw (100, 100);
+       LCD.WriteAt ("Click to continue", 180, 200);
     Sleep (500);
 LCD.WriteLine ("They are harmless to you, but if they get past you\nthey will wreak havoc on the environment");
-Sleep (5.0);
+while (!LCD.Touch (&x, &y))
+{
+
+}
 LCD.Clear();
+ LCD.WriteAt ("Click to continue", 180, 200);
   obama.Draw (100, 100);
 Sleep (500);
 LCD.WriteLine ("Destroy them before it's too late!");
-Sleep (5.0);
+while (!LCD.Touch (&x, &y))
+{
+
+}
 LCD.Clear ();
+ LCD.WriteAt ("Click to continue", 180, 200);
   obama.Draw (100, 100);
 Sleep (500);
 LCD.WriteLine ("I am president Obamna");
-Sleep (5.0);
+while (!LCD.Touch (&x, &y))
+{
+
+}
     // This background will be worked on
     //draw just the background
     LCD.Clear();
@@ -367,7 +388,7 @@ while (quit == 0)
     {
         quit = 1; //quit if escape is pressed
     }
-    else if (Keyboard.isPressed (KEY_RIGHT) && rocketx < 300.00 && time_difference > .15) //checks if right key is being pressed
+    else if (Keyboard.isPressed (KEY_RIGHT) && rocketx < 270.00 && time_difference > .15) //checks if right key is being pressed
     {
         
         rocketx = rocketx + move_increment; //increment x position
@@ -385,7 +406,7 @@ time_move = TimeNow();
         rockety = rockety - move_increment; //increment y position
        time_move = TimeNow();
     }
-else if (Keyboard.isPressed (KEY_DOWN) && rockety < 220 &&time_difference > .15)
+else if (Keyboard.isPressed (KEY_DOWN) && rockety < 190 &&time_difference > .15)
     {
 
         rockety = rockety + move_increment; //increment x position
@@ -439,7 +460,7 @@ else if (Keyboard.isPressed (KEY_DOWN) && rockety < 220 &&time_difference > .15)
         
         direction = 2;
         lanternflyx = lanternflyx - 20;
-        lanternflyy = lanternflyy + 20;
+        lanternflyy = lanternflyy + 30;
         
     }
     
@@ -461,7 +482,7 @@ else if (Keyboard.isPressed (KEY_DOWN) && rockety < 220 &&time_difference > .15)
     {
         direction = 1; //reset back to right
         lanternflyx = lanternflyx + 20;
-        lanternflyy = lanternflyy + 20; //move them down
+        lanternflyy = lanternflyy + 30; //move them down
         
     }
     
@@ -475,11 +496,10 @@ else if (Keyboard.isPressed (KEY_DOWN) && rockety < 220 &&time_difference > .15)
     
     
     i++;
-    Sleep (10);
         background_refresh (rocketx, rockety, lanternflyx, lanternflyy, enemy_hit);
       
         LCD.Update();
-        Sleep (0); //slow down the loop
+        Sleep (8); //slow down the loop
      // I want to figure out hoow to get the enemies to move down the screen
 }
 LCD.Clear();
