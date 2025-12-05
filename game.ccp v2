@@ -20,7 +20,7 @@ void updateplayer (int*, int*, int); //update player positions according to keyb
 void credits ();
 void enablekeyboard();
 void tutorial_refresh (float, float);
-void background_refresh (float, float, float, float);
+void background_refresh (float, float, float, float, int);
 void enemiesmove(float, float);
 void endscreen();
 // These are the gobal variables. Define them here so they can be used throught the code
@@ -135,7 +135,7 @@ mainmenu();
 void mainmenu()
 {
   // declare an array of four icons called menu
-
+LCD.SetFontScale (1);
   FEHImage mainscreen;
   mainscreen.Open("background_for_mainscreen.png");
   mainscreen.Draw(0,0);
@@ -264,23 +264,27 @@ else if (Keyboard.isPressed (KEY_DOWN) && y_position != 210)
 mainmenu();
 }
 
-void background_refresh (float x, float y, float lanternflyx,float lanternflyy)
+void background_refresh (float x, float y, float lanternflyx,float lanternflyy, int enemy_hit)
 
 {
-    
+    LCD.Clear();
 FEHImage streetbackground;
 streetbackground.Open("Streetbackgroundv1.png");
 streetbackground.Draw(0,0);
 FEHImage rocket;
 rocket.Open("Rocketship.png");
 rocket.Draw(x,y);
+if (enemy_hit <= 8)
+{
 enemiesmove (lanternflyx, lanternflyy);
+}
 LCD.Update();
 
 }
 
-void enemiesmove(float  x_position,float y_position )
+void enemiesmove(float  x_position, float y_position)
 {
+   
     FEHImage lantern;
    
 
@@ -288,35 +292,77 @@ void enemiesmove(float  x_position,float y_position )
    
     lantern.Draw(x_position,y_position);lantern.Draw(x_position+10,y_position);lantern.Draw(x_position+20,y_position);
     lantern.Draw(x_position+30,y_position);lantern.Draw(x_position+40,y_position);
-    
-  
-    
 }
 
 // THis is for the game its self 
     void start () // this is in its sample mode. Need to add stuff 
 {
     int quit;
-    int i = 0, direction = 1;
-    int enemies_move = 0;
-    float time_current, time_move, time_difference;
+    int i = 0, direction = 1, enemy_hit = 0;
+    float time_current, time_move, time_difference, enemy_timer, enemycdown, time_shoot, shoot_cooldown, move_cooldown = 0.15;
     time_current=TimeNow();// hmakeing 
 time_move = TimeNow();
-
+enemycdown = TimeNow();
+time_shoot = TimeNow();
+FEHSound hit ("laser_hit.wav");
     FEHSound highPEW("highPEW.wav");
     FEHSound strongPEW("strongProjectile.wav");
     float rocketx = 120, rockety = 200,lanternflyx = 120,lanternflyy = 0;
+FEHImage obama;
+obama.Open ("Obamna.png");
+    /*Introduction*/
+    LCD.SetBackgroundColor (BLACK);
+    LCD.Clear();
+    LCD.SetFontScale (0.5);
+    LCD.WriteLine ("Machine, you have been called for a higher purpose...");\
+    obama.Draw (100, 100);
+    LCD.Update();
+    Sleep (5.0);
+    LCD.Clear();
+      obama.Draw (100, 100);
+    Sleep (500);
+    LCD.WriteLine ("You must save the city of columbus\nfrom the spotted lanternfly...");
+    Sleep (5.0);
+    LCD.Clear();
+      obama.Draw (100, 100);
+    Sleep (500);
+LCD.WriteLine ("They are harmless to you, but if they get past you\nthey will wreak havoc on the environment");
+Sleep (5.0);
+LCD.Clear();
+  obama.Draw (100, 100);
+Sleep (500);
+LCD.WriteLine ("Destroy them before it's too late!");
+Sleep (5.0);
+LCD.Clear ();
+  obama.Draw (100, 100);
+Sleep (500);
+LCD.WriteLine ("I am president Obamna");
+Sleep (5.0);
     // This background will be worked on
-background_refresh (rocketx, rockety, lanternflyx, lanternflyy);
+    //draw just the background
+    LCD.Clear();
+FEHImage streetbackground;
+streetbackground.Open("Streetbackgroundv1.png");
+streetbackground.Draw(0,0);
+Sleep (1.0);
+LCD.SetFontColor (SCARLET);
+background_refresh (rocketx, rockety, lanternflyx, lanternflyy, enemy_hit);
     quit = 0;
     int counter=0;
+
+/*FIRST WAVE*/
+
+
+
 while (quit == 0)
 {
     time_current = TimeNow();
     time_difference = time_current - time_move;
-    enemies_move = cos ((i*pi)/2);
+    enemy_timer = time_current - enemycdown;
+    shoot_cooldown = time_current - time_shoot;
+
     counter = counter+1; // this should count the amount of cycles so from there we can move the enemies down
-    enemiesmove (lanternflyx, lanternflyy);
+
     if (Keyboard.isPressed (KEY_ESCAPE))
     {
         quit = 1; //quit if escape is pressed
@@ -345,7 +391,7 @@ else if (Keyboard.isPressed (KEY_DOWN) && rockety < 220 &&time_difference > .15)
         rockety = rockety + move_increment; //increment x position
        time_move = TimeNow();
     }
-    else if (Keyboard.isPressed (KEY_SPACE) && time_difference > .15)
+    else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .15) 
     {
         int g=Random.RandInt()%2;
         if (g==0)
@@ -359,35 +405,64 @@ else if (Keyboard.isPressed (KEY_DOWN) && rockety < 220 &&time_difference > .15)
         LCD.SetFontColor (GREEN);
         LCD.DrawLine (rocketx + 26, rockety, rocketx + 26, 0);
         LCD.DrawLine (rocketx + 23, rockety, rocketx + 23, 0);
+        
         LCD.Update();
-    }
-
-
-else if (lanternflyx > 260) //change direction and move enemies down
-{
-
-    direction = 2;
-    lanternflyx = lanternflyx - 20;
-    lanternflyy = lanternflyy + 20;
-}
-
-
-    else if (enemies_move == 1 && direction == 1) //this wil move the lanternflies right along the x axis
+        time_shoot = TimeNow();
+        
+        printf ("The hit counter is %i\n ", enemy_hit);
+        
+        /*Collision code*/
+        if (
+            (
+                    (rocketx+26 > lanternflyx && rocketx+26 < lanternflyx+60) ||
+                    (rocketx+23 > lanternflyx && rocketx+23 < lanternflyx+60)
+                )
+                &&
+                (rockety > lanternflyy + 30)   // beam must be ABOVE rocket and BELOW enemy bottom
+                &&
+                (enemy_hit <=8)
+            )
+            {
+                enemy_hit++;
+                printf("Enemy hit!\n"); 
+                //play collision sound
+                hit.play ();
+            }
+        }
+        
+    //enemy collision
+    
+    
+    
+    else if (lanternflyx > 260) //change direction and move enemies down
     {
-        lanternflyx = lanternflyx + 30;
+        
+        direction = 2;
+        lanternflyx = lanternflyx - 20;
+        lanternflyy = lanternflyy + 20;
         
     }
-
-    else if (enemies_move == 1 && direction == 2) //move lanternflies left along y-axis
+    
+    
+    else if (direction == 1 && enemy_timer > move_cooldown && enemy_hit <=8) //this wil move the lanternflies right along the x axis
+    {
+        lanternflyx = lanternflyx + 30;
+        enemycdown = TimeNow();
+        
+    }
+    
+    else if (direction == 2 && enemy_timer > move_cooldown && enemy_hit <=8) //move lanternflies left along y-axis
     {
         lanternflyx = lanternflyx - 30; //move them to the right
+        enemycdown = TimeNow();
     }
-
-    else if (lanternflyx < 40)
+    
+    else if (lanternflyx < 20)
     {
         direction = 1; //reset back to right
         lanternflyx = lanternflyx + 20;
         lanternflyy = lanternflyy + 20; //move them down
+        
     }
     
     
@@ -400,11 +475,11 @@ else if (lanternflyx > 260) //change direction and move enemies down
     
     
     i++;
-        background_refresh (rocketx, rockety, lanternflyx, lanternflyy);
-        //enemy refresh
-        printf ("The current y-position is %f \n \n", lanternflyy);
+    Sleep (10);
+        background_refresh (rocketx, rockety, lanternflyx, lanternflyy, enemy_hit);
+      
         LCD.Update();
-        Sleep (20); //slow down the loop
+        Sleep (0); //slow down the loop
      // I want to figure out hoow to get the enemies to move down the screen
 }
 LCD.Clear();
@@ -435,7 +510,7 @@ void endscreen()
     skull.Open ("backgroundscreenskull.png");
     skull.Draw(30,50);
     LCD.SetFontColor(WHITE);
-    LCD.SetFontScale(2);
+    LCD.SetFontScale(1);
 
     LCD.Write("       GAME OVER");
     
