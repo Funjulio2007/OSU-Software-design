@@ -8,8 +8,7 @@
 #include <FEHRandom.h>
 #include <math.h>
 
-#define move_increment  30
-#define pi  3.14159265358979323
+#define move_increment  20
 //Protypes 
 void mainmenu();
 void tutorial();
@@ -27,14 +26,39 @@ void endscreen();
 
 //Function calls occur here and gameplay
 
+//class creation
+class collectstats 
+{
+    private:
+    int score, waves;
+    float Time_alive; // I have to collect these values from the start function
+    char playername [4];
+    public:
+    void STATS();
+    void endscreen();
+    void start();
+    collectstats(char name[]= "None");
+
+
+};
+
+//constructor
+collectstats::collectstats(char name [4])
+{
+
+score=0;
+waves=0;
+Time_alive=0.0;
+strcpy(playername,name);
+}
 //Image classes
 
 FEHImage rocket;
 FEHImage streetbackground;
 FEHImage lantern;
 FEHImage mainscreen;
-FEHImage obama;   // moved to global to avoid repeated Open() calls
-FEHImage skull;   // moved to global to avoid repeated Open() calls
+FEHImage obama;   
+FEHImage skull;   
 
 int main(){
     float x_position,y_position;
@@ -69,19 +93,21 @@ skull.Open("backgroundscreenskull.png"); // open once globally
    If a click happens
    Track click location
    If click location is within a button, perform that button's function*/
+
+
 while(valid==0)
 {
-  // wait for a real touch event (fixed stray semicolon bug)
+  // wait for a real touch event 
   while (!LCD.Touch (xptr, yptr)) { }
-  printf ("\nThe x-coordinate is %f \n The y-coordinate is %f\n", x_position, y_position);
+
 
 /*Wait for Touch*/
-/* (removed the stray semicolon so the loop actually waits) */
+
 
 
     if ( x_position > 160.00 && x_position <314.00 && y_position > 12.00 && y_position < 120.00) // this is for the tutorial
      {
-        printf ("Tutorial coordinates found, playing tutorial");
+      
         background1.restart();
         tutorial();
          
@@ -154,7 +180,7 @@ void mainmenu()
 LCD.SetFontScale (1);
  
   
-  mainscreen.Draw(0,0);
+  mainscreen.Draw(-12,0);
     FEHIcon::Icon menu[4];
 
     // define the four menu labels
@@ -163,7 +189,7 @@ LCD.SetFontScale (1);
     // draw the menu in a 2 by 2 array with top and bottom
     // margins of 10 and left and right margins of 5
     // with the menu labels, gold borders, and green text
-    FEHIcon::DrawIconArray(menu, 2, 2, 10, 10, 5, 5, menu_labels, SCARLET, GRAY);
+    FEHIcon::DrawIconArray(menu, 2, 2, 10, 10, 5, 5, menu_labels, WHITE,WHITE);
     lantern.Draw (100,100);
 
     // make button a quit stats button
@@ -308,20 +334,27 @@ void enemiesmove(float  x_position, float y_position)
     lantern.Draw(x_position+30,y_position);lantern.Draw(x_position+40,y_position);
 }
 
+
+
 // THis is for the game its self 
     void start () // this is in its sample mode. Need to add stuff 
 {
-    int quit;
+    int quit, waves_cleared;
     float x, y; //click trash variables
     int direction = 1, enemy_hit = 0;
-    float time_current, time_move, time_difference, enemy_timer, enemycdown, time_shoot, shoot_cooldown, move_cooldown = 0.15;
-    time_current=TimeNow();// hmakeing 
+    float time_current, time_move, time_difference, enemy_timer, enemycdown, time_shoot, shoot_cooldown, move_cooldown = 0.5 /*set a move cooldown variable for the enemies*/;
+
+
+    time_current=TimeNow();// set the starting time for all of the cooldowns
 time_move = TimeNow();
 enemycdown = TimeNow();
 time_shoot = TimeNow();
+
+
 FEHSound hit ("laser_hit.wav");
     FEHSound highPEW("highPEW.wav");
     FEHSound strongPEW("strongProjectile.wav");
+    FEHSound robot("robot_voice.wav");
     float rocketx = 120, rockety = 200,lanternflyx = 120,lanternflyy = 0;
 
 highPEW.setVolume (0.3); //sets the volume for the rocket laser projectile sound effect
@@ -339,7 +372,9 @@ strongPEW.setVolume (0.3);
     LCD.WriteAt ("Click to continue", 180, 200);
     obama.Draw (100, 100);
     LCD.Update();
- while (!LCD.Touch (&x, &y))
+
+
+ while (!LCD.Touch (&x, &y)) //wait for a click anywhere, feed two trash variables
 {
 
 }
@@ -357,6 +392,8 @@ while (!LCD.Touch (&x, &y)) //each of these is just to wait for the user's click
        LCD.WriteAt ("Click to continue", 180, 200);
     Sleep (500);
 LCD.WriteLine ("They are harmless to you, but if they get past you\nthey will wreak havoc on the environment");
+
+
 while (!LCD.Touch (&x, &y))
 {
 
@@ -379,6 +416,17 @@ while (!LCD.Touch (&x, &y))
 {
 
 }
+LCD.Clear();
+rocket.Draw (100, 100);
+Sleep (500);
+LCD.WriteLine ("Yes, president Obamna");
+ LCD.WriteAt ("Click to continue", 180, 200);
+ LCD.Update();
+robot.play();
+while (!LCD.Touch (&x, &y))
+{
+
+}
     // This background will be worked on
     //draw just the background
     LCD.Clear();
@@ -392,9 +440,12 @@ background_refresh (rocketx, rockety, lanternflyx, lanternflyy, enemy_hit);
 /*FIRST WAVE*/
 
 
-
+int wave_over = 0;
 while (quit == 0)
 {
+     //at the start of each wave, set wave_over equal to zero. We only need a few lines of code to adjust conditions after the wave
+    while (wave_over == 0 && quit == 0) //sets up a loop that runs until a wave is complete, exits if the wave is complete or if the player chooses to quit
+    {
     time_current = TimeNow();
     time_difference = time_current - time_move;
     enemy_timer = time_current - enemycdown;
@@ -404,12 +455,12 @@ while (quit == 0)
 
     if (Keyboard.isPressed (KEY_ESCAPE))
     {
-        quit = 1; //quit if escape is pressed
+        quit = 1; //quit if escape is pressed and return to main menu
     }
 
 
 
-        else if (Keyboard.isPressed (KEY_RIGHT) && rocketx < 270.00 && time_difference > .15) //checks if right key is being pressed
+        else if (Keyboard.isPressed (KEY_RIGHT) && rocketx < 270.00 && time_difference > .10) //checks if right key is being pressed
     {
         
         rocketx = rocketx + move_increment; //increment x position
@@ -418,7 +469,7 @@ while (quit == 0)
 
 
 
-        else if (Keyboard.isPressed (KEY_LEFT) && rocketx > 20 &&time_difference > .15) //checks if left key is being pressed
+        else if (Keyboard.isPressed (KEY_LEFT) && rocketx > 20 &&time_difference > .10) //checks if left key is being pressed
     {
         
         rocketx = rocketx - move_increment; //increment x position
@@ -427,7 +478,7 @@ time_move = TimeNow();
 
 
 
-else if (Keyboard.isPressed (KEY_UP) && rockety > 140 &&time_difference > .15) //checks if up key is being pressed
+else if (Keyboard.isPressed (KEY_UP) && rockety > 140 &&time_difference > .10) //checks if up key is being pressed
     {
         
         rockety = rockety - move_increment; //increment y position
@@ -435,7 +486,7 @@ else if (Keyboard.isPressed (KEY_UP) && rockety > 140 &&time_difference > .15) /
     }
 
 
-else if (Keyboard.isPressed (KEY_DOWN) && rockety < 190 &&time_difference > .15)
+else if (Keyboard.isPressed (KEY_DOWN) && rockety < 190 &&time_difference > .10)
     {
 
         rockety = rockety + move_increment; //increment x position
@@ -478,7 +529,7 @@ else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .20)
             )
             {
                 enemy_hit++;
-                printf("Enemy hit!\n"); 
+               
                 //play collision sound
                 hit.play ();
             }
@@ -523,23 +574,60 @@ else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .20)
     else if (lanternflyy > 180) //checks if the lanternflies have reached the bottom of the screen
         {
         endscreen(); //plays the endscreen
-        Keyboard.waitAnyKey (KEY_ESCAPE); //waits for the player to press escape and then returns to the main menu
+        quit = 1;
         break;
         }
     
-    
+
+        
+        /*Wave completion*/
+        if (enemy_hit == 8)
+
+    {
+
+waves_cleared ++; //add 1 to the waves cleared for the stats
+wave_over = 1; //breaks out of this loop, but quit is still set to 0, so a new wave will start
+
+    }
+
+
+
     Sleep (5); //slow down the loop
         background_refresh (rocketx, rockety, lanternflyx, lanternflyy, enemy_hit); //run background refresh to regenerate the environment with new positions
-      
-     // I want to figure out hoow to get the enemies to move down the screen
-}
-LCD.Clear();
+} //end of the wave code
+
+
+if (quit==0)
+{
+        /*Wave transition!*/
+background_refresh (rocketx, rockety, lanternflyx, lanternflyy, enemy_hit); //call background refresh once to make sure that all elements of the background are updated
+LCD.WriteLine ("WAVE COMPLETE!");
+obama.Draw (100, 100);
+LCD.Update();
+Sleep (1.0);
+
+
+move_cooldown = move_cooldown - 0.015; //make the new wave move faster than the last
+lanternflyx = 120;
+lanternflyy = 0; //reset the lanternfly position
+background_refresh (rocketx, rockety, lanternflyx, lanternflyy, enemy_hit); //get rid of the old background and re-generate the enemies for the next wave
+wave_over = 0; //resets the wave over variable so that the new wave will play
+enemy_hit = 0; //reset the enemy hit counter to refill health
+
+
+} //end of if statement
+
+} //end of the main quit loop
+
+/*First wave complete! Now do the second wave, probably just */
+LCD.Clear(); //clear the game background and boot the main menu
 mainmenu();
 }
 
 void STATS () // would need to make an exit game 
 {
     int quit;
+    // Time Alive, Enter Name- deathscreen then enter name screen
 LCD.Clear ();
 LCD.SetBackgroundColor (BLUE);
 LCD.SetFontColor (WHITE);
@@ -554,17 +642,22 @@ mainmenu();
 }
 void endscreen()
 {
+    int x, y;
     LCD.Clear();
     LCD.SetBackgroundColor(BLACK);
     LCD.Clear();
     // FEHImage skull; (removed local image - using global skull opened in main)
     // skull.Open ("backgroundscreenskull.png"); (now opened once in main)
-    skull.Draw(30,50);
+    skull.Draw(40, 30);
     LCD.SetFontColor(WHITE);
     LCD.SetFontScale(1);
 
-    LCD.Write("       GAME OVER");
+    LCD.WriteLine("         GAME OVER\n    Click to continue");
     LCD.Update();
-    
+    while(!LCD.Touch(&x,&y))
+    {
+        
+    }
+    // collect name, send into Stats 
     
 }
