@@ -323,9 +323,15 @@ FEHSound hit ("laser_hit.wav");
     FEHSound highPEW("highPEW.wav");
     FEHSound strongPEW("strongProjectile.wav");
     float rocketx = 120, rockety = 200,lanternflyx = 120,lanternflyy = 0;
-// FEHImage obama;  (removed local image)
- // obama.Open ("Obamna.png");  (now opened globally)
+
+highPEW.setVolume (0.3); //sets the volume for the rocket laser projectile sound effect
+strongPEW.setVolume (0.3);
+
+
+
     /*Introduction*/
+
+
     LCD.SetBackgroundColor (BLACK);
     LCD.Clear();
     LCD.SetFontScale (0.5);
@@ -394,47 +400,62 @@ while (quit == 0)
     enemy_timer = time_current - enemycdown;
     shoot_cooldown = time_current - time_shoot;
 
-    counter = counter+1; // this should count the amount of cycles so from there we can move the enemies down
+ // this should count the amount of cycles so from there we can move the enemies down
 
     if (Keyboard.isPressed (KEY_ESCAPE))
     {
         quit = 1; //quit if escape is pressed
     }
-    else if (Keyboard.isPressed (KEY_RIGHT) && rocketx < 270.00 && time_difference > .15) //checks if right key is being pressed
+
+
+
+        else if (Keyboard.isPressed (KEY_RIGHT) && rocketx < 270.00 && time_difference > .15) //checks if right key is being pressed
     {
         
         rocketx = rocketx + move_increment; //increment x position
  time_move = TimeNow();
     }
-    else if (Keyboard.isPressed (KEY_LEFT) && rocketx > 20 &&time_difference > .15) //checks if left key is being pressed
+
+
+
+        else if (Keyboard.isPressed (KEY_LEFT) && rocketx > 20 &&time_difference > .15) //checks if left key is being pressed
     {
         
         rocketx = rocketx - move_increment; //increment x position
 time_move = TimeNow();
     }
-    else if (Keyboard.isPressed (KEY_UP) && rockety > 140 &&time_difference > .15) //checks if up key is being pressed
+
+
+
+else if (Keyboard.isPressed (KEY_UP) && rockety > 140 &&time_difference > .15) //checks if up key is being pressed
     {
         
         rockety = rockety - move_increment; //increment y position
        time_move = TimeNow();
     }
+
+
 else if (Keyboard.isPressed (KEY_DOWN) && rockety < 190 &&time_difference > .15)
     {
 
         rockety = rockety + move_increment; //increment x position
        time_move = TimeNow();
     }
-    else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .20) 
+
+
+else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .20) 
     {
         int g=Random.RandInt()%2;
         if (g==0)
         {
               strongPEW.play();
         }
+
         else if(g == 1)
         {
             highPEW.play();
         }
+
         LCD.SetFontColor (GREEN);
         LCD.DrawLine (rocketx + 26, rockety, rocketx + 26, 0);
         LCD.DrawLine (rocketx + 23, rockety, rocketx + 23, 0);
@@ -442,7 +463,7 @@ else if (Keyboard.isPressed (KEY_DOWN) && rockety < 190 &&time_difference > .15)
         LCD.Update();
         time_shoot = TimeNow();
         
-        printf ("The hit counter is %i\n ", enemy_hit);
+
         
         /*Collision code*/
         if (
@@ -451,7 +472,7 @@ else if (Keyboard.isPressed (KEY_DOWN) && rockety < 190 &&time_difference > .15)
                     (rocketx+23 > lanternflyx && rocketx+23 < lanternflyx+60)
                 )
                 &&
-                (rockety > lanternflyy + 30)   // beam must be ABOVE rocket and BELOW enemy bottom
+                (rockety > lanternflyy + 30)   // checks if the beam is above the rocket and below the enemy bottom
                 &&
                 (enemy_hit <=8)
             )
@@ -478,37 +499,37 @@ else if (Keyboard.isPressed (KEY_DOWN) && rockety < 190 &&time_difference > .15)
     
     
     else if (direction == 1 && enemy_timer > move_cooldown && enemy_hit <=8) //this wil move the lanternflies right along the x axis
-    {
+        {
         lanternflyx = lanternflyx + 30;
         enemycdown = TimeNow();
         
-    }
+        }
     
     else if (direction == 2 && enemy_timer > move_cooldown && enemy_hit <=8) //move lanternflies left along y-axis
-    {
+        {
         lanternflyx = lanternflyx - 30; //move them to the right
         enemycdown = TimeNow();
-    }
+        }
     
     else if (lanternflyx < 20)
-    {
+        {
         direction = 1; //reset back to right
         lanternflyx = lanternflyx + 20;
         lanternflyy = lanternflyy + 30; //move them down
         
-    }
+        }
     
     
-    else if (lanternflyy > 180) 
-    {
-        endscreen();
-        Keyboard.waitAnyKey (KEY_ESCAPE);
+    else if (lanternflyy > 180) //checks if the lanternflies have reached the bottom of the screen
+        {
+        endscreen(); //plays the endscreen
+        Keyboard.waitAnyKey (KEY_ESCAPE); //waits for the player to press escape and then returns to the main menu
         break;
-    }
+        }
     
     
     Sleep (5); //slow down the loop
-        background_refresh (rocketx, rockety, lanternflyx, lanternflyy, enemy_hit);
+        background_refresh (rocketx, rockety, lanternflyx, lanternflyy, enemy_hit); //run background refresh to regenerate the environment with new positions
       
      // I want to figure out hoow to get the enemies to move down the screen
 }
