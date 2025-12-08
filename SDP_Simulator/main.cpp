@@ -1,0 +1,973 @@
+#include <FEHLCD.h>
+#include <FEHUtility.h>
+#include <LCDColors.h>
+#include <FEHKeyboard.h>
+#include <stdio.h>
+#include <FEHSound.h>
+#include <FEHImages.h>
+#include <FEHRandom.h>
+#include <math.h>
+
+#define move_increment  25
+
+//Protypes 
+void mainmenu();
+void tutorial();
+//void start(); 
+//void STATS ();
+void updatestats (int*, int*, float*, char[4]); // (Points, waves, time player, player name)
+void updateplayer (int*, int*, int); //update player positions according to keyboard, accepts x position, y position, and buttonpressed as integers
+void credits ();
+void enablekeyboard();
+void tutorial_refresh (float, float);
+void background_refresh (float, float, float, float, float, float, int,int, int);
+void enemiesmove(float, float,float, float, int, int ,int);
+//void endscreen();
+// These are the gobal variables. Define them here so they can be used throught the code
+
+//Function calls occur here and gameplay
+
+//class creation
+class collectstats 
+{
+    private:
+    int score, waves;
+    float Time_alive,timeend,timebegin; // I have to collect these values from the start function
+    char playername [4];
+    public:
+    void STATS();
+    void endscreen();
+    void start();
+    collectstats();
+ 
+
+};
+
+//constructor
+collectstats::collectstats()
+{
+
+Time_alive=0.0;
+timeend=0.0;
+timebegin=0.0;
+strcpy (playername,"No name");
+}
+//Image classes
+
+FEHImage rocket;
+FEHImage streetbackground;
+FEHImage lantern;
+FEHImage mainscreen;
+FEHImage obama;   
+FEHImage skull;   
+
+FEHSound wave ("wave_completed.wav");
+FEHSound robot ("robot_voice.wav");
+FEHSound gameover ("death_sound.wav");
+int main(){
+    float x_position,y_position;
+    float *xptr, *yptr; // put pointer 
+    int quit = 0, valid=0;
+    xptr = &x_position;
+    yptr = &y_position;
+// declare an array of four icons called menu
+   // make the menu pop up
+
+
+//open images
+lantern.Open("spotted_lanternfly.png");
+rocket.Open("Rocketship.png");
+streetbackground.Open("Streetbackgroundv1.png");
+mainscreen.Open("background_for_mainscreen.png");
+obama.Open("Obamna.png");               // open once globally
+skull.Open("backgroundscreenskull.png"); // open once globally
+
+
+   // making background music
+    FEHSound background1("f72c-7f1e-4181-9c08-2d055d6eaad6-FORGAME.wav");
+   background1.play(); // lets figure out how to keep it looping
+   
+
+  
+
+
+    
+   mainmenu();
+   
+   collectstats p1 ;
+   /*Wait for click
+   If a click happens
+   Track click location
+   If click location is within a button, perform that button's function*/
+
+
+while(valid==0)
+{
+  // wait for a real touch event 
+  while (!LCD.Touch (xptr, yptr)) { }
+
+
+/*Wait for Touch*/
+
+
+
+    if ( x_position > 160.00 && x_position <314.00 && y_position > 12.00 && y_position < 120.00) // this is for the tutorial
+     {
+        
+        background1.restart();
+        tutorial();
+         
+        valid = 1;
+    }
+    
+    
+    if ( x_position<160 && x_position>5 && y_position >121 && y_position < 230  ) // credits 
+    {
+        // this is for credit function 
+        background1.restart();
+        credits();
+         
+    }
+    if ( x_position <160 && x_position >5 && y_position <120 && y_position > 12 )//start
+    {
+        // This is for the start function
+        background1.restart(); // would probably change this sound to something more action packed 
+        p1.start();
+         
+    }
+    if ( x_position < 314 && x_position >160 && y_position <230 && y_position > 121)
+    {
+        // this is the quit function
+        background1.restart();  
+        p1.STATS();
+        
+    }
+
+    
+else
+{
+ valid=0;
+} //end else statement
+
+} //end invalid click loop
+ /*Write code for a return to menu button here, ideally after the game ove*/
+//while (quit == 1); //end of do while loop to return in menu
+    while (1) {
+        LCD.Update();    
+    }
+    return(1);
+
+}
+
+void credits()
+{
+    int quit =0;
+    LCD.Clear();
+    LCD.SetBackgroundColor (BLUE);
+    LCD.SetFontColor (WHITE);
+    LCD.SetFontScale(.5);
+    LCD.WriteLine ("This game was made by \nChadwick Lucas and Lucas Clavijo\nThank you For Playing!");
+    // I want to some how put some music in
+    LCD.SetFontScale(.5);
+    LCD.WriteLine("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nReturn to menu,hit escape");
+    LCD.SetFontScale(1);
+
+LCD.Update();
+     Keyboard.waitSpecificKey(KEY_ESCAPE); //wait for excape button to be pressed
+        LCD.Clear(BLACK);
+mainmenu();
+    
+}
+
+ // This is the function to make the menu appear 
+void mainmenu()
+{
+  // declare an array of four icons called menu
+LCD.SetFontScale (1);
+ 
+  
+  mainscreen.Draw(0,0);
+    FEHIcon::Icon menu[4];
+
+    // define the four menu labels
+    char menu_labels[4][20] = {"START GAME","TUTORIAL","CREDITS","STATS"};
+
+    // draw the menu in a 2 by 2 array with top and bottom
+    // margins of 10 and left and right margins of 5
+    // with the menu labels, gold borders, and green text
+    FEHIcon::DrawIconArray(menu, 2, 2, 10, 10, 5, 5, menu_labels, WHITE,WHITE);
+    lantern.Draw (100,100);
+
+    // make button a quit stats button
+   
+   LCD.Update();
+   
+}
+
+ //refreshes the screen in the tutorial after a movement or projectile happens
+void tutorial_refresh(float x, float y)
+{
+    
+    LCD.SetFontScale (1);
+LCD.SetBackgroundColor (SCARLET);
+LCD.Clear();
+LCD.SetFontColor (WHITE);
+LCD.DrawRectangle (100, 135, 125, 100);
+LCD.WriteAt ("How To Play:", 100, 25);
+LCD.WriteAt ("Use the arrow keys to move", 5, 50);
+LCD.WriteAt ("Use space to shoot", 5, 75);
+LCD.WriteAt ("Don't get hit!", 5, 100); //this will generate the tutorial
+LCD.SetFontScale (0.5);
+LCD.WriteLine ("Press escape to exit                                                            ");
+LCD.SetFontScale (1);
+
+
+
+        rocket.Draw (x, y); //generate rectangle with the coordinates passed onto it by the tutorial function
+
+LCD.Update();
+}
+
+
+
+ //runs the tutorial section of the menu
+void tutorial ()
+{
+    int quit;
+    float x_position, y_position, *xptr, *yptr;
+    x_position = 150;
+    y_position = 175;
+    xptr = &x_position;
+    yptr = &y_position; //declare position variables and the quit variable for the loop
+
+
+tutorial_refresh(x_position, y_position); //write the background
+
+
+        LCD.FillRectangle (x_position, y_position, 20, 20); //generate first rectangle
+// go back to menu button using the escape
+LCD.Update();
+quit = 0;
+
+
+while (quit == 0)
+{
+    
+    if (Keyboard.isPressed (KEY_ESCAPE))
+    {
+        quit = 1; //quit if escape is pressed
+    }
+
+
+    else if (Keyboard.isPressed (KEY_RIGHT) && x_position !=200.00) //checks if right key is being pressed
+    {
+        
+        x_position = x_position + 5; //increment x position
+ 
+    }
+
+
+    else if (Keyboard.isPressed (KEY_LEFT) && x_position !=105) //checks if left key is being pressed
+    {
+        
+        x_position = x_position - 5; //increment x position
+
+    }
+
+
+    else if (Keyboard.isPressed (KEY_UP) && y_position != 140) //checks if up key is being pressed
+    {
+        
+        y_position = y_position - 5; //increment y position
+       
+    }
+
+
+else if (Keyboard.isPressed (KEY_DOWN) && y_position != 210)
+    {
+
+        y_position = y_position + 5; //increment x position
+       
+    }
+
+
+    else if (Keyboard.isPressed (KEY_SPACE))
+    {
+        LCD.SetFontColor (GREEN);
+        LCD.DrawLine (x_position + 26, y_position, x_position + 26, 0);
+        LCD.DrawLine (x_position +23, y_position, x_position+23, 0);
+        LCD.Update();
+        Sleep (0.1);
+    }
+
+
+    tutorial_refresh (x_position, y_position);
+    LCD.Update();
+  
+    Sleep (20); //slow down the loop
+     }
+mainmenu();
+}
+
+
+
+    void background_refresh (float x, float y, float lanternflyx,float lanternflyy, float lanternflyx2,float lanternflyy2,int enemy_hit,int enemy_hit2,int stage ) //
+
+{
+    // stage is an indicator of the advancement of diffcultly of the waves 
+    LCD.Clear();
+
+streetbackground.Draw(0,0);
+
+rocket.Draw(x,y);
+enemiesmove (lanternflyx, lanternflyy,lanternflyx2,lanternflyy2, enemy_hit, enemy_hit2,stage);
+LCD.Update();
+
+}
+
+void enemiesmove(float  x_position, float y_position, float x_position2 , float y_position2,int hit1,int hit2, int stage)
+{
+   if (stage==1)
+   {
+    if (hit1<=8)
+    {
+    lantern.Draw(x_position,y_position);lantern.Draw(x_position+10,y_position);lantern.Draw(x_position+20,y_position);
+    lantern.Draw(x_position+30,y_position);lantern.Draw(x_position+40,y_position);
+    }
+   }
+   if (stage==2)
+   {
+    if (hit1<=8)
+    {
+    lantern.Draw(x_position,y_position);lantern.Draw(x_position+10,y_position);lantern.Draw(x_position+20,y_position);
+    lantern.Draw(x_position+30,y_position);lantern.Draw(x_position+40,y_position);
+    }
+    if (hit2<=8)
+    {
+    lantern.Draw(x_position2-30,y_position2-20);lantern.Draw(x_position2-20,y_position2-20);lantern.Draw(x_position2-10,y_position2-20);
+    lantern.Draw(x_position2,y_position2-20);
+    }
+   }
+}
+
+
+
+// This is for the game its self 
+    void collectstats:: start () // this is in its sample mode. Need to add stuff 
+{
+    int quit, waves_cleared;
+    float x, y; //click trash variables
+    int direction = 1, direction2=1, enemy_hit = 0, enemy_hit2=0 ,stage=1;
+    float time_current, time_move, time_difference, enemy_timer, enemycdown, time_shoot, shoot_cooldown, move_cooldown = 0.5; /*set a move cooldown variable for the enemies*/;
+
+    ;
+    time_current=TimeNow();// set the starting time for all of the cooldowns
+time_move = TimeNow();
+enemycdown = TimeNow();
+time_shoot = TimeNow();
+timebegin = TimeNow();
+
+
+FEHSound hit ("laser_hit.wav");
+    FEHSound highPEW("highPEW.wav");
+    FEHSound strongPEW("strongProjectile.wav");
+    float rocketx = 120, rockety = 200,lanternflyx = 120,lanternflyy = 0, lanternflyx2=200, lanternflyy2=0;
+
+highPEW.setVolume (0.3); //sets the volume for the rocket laser projectile sound effect
+strongPEW.setVolume (0.3);
+
+
+
+    /*Introduction*/
+
+
+    LCD.SetBackgroundColor (BLACK);
+    LCD.Clear();
+    LCD.SetFontScale (0.5);
+    LCD.WriteLine ("Machine, you have been called for a higher purpose...");\
+    LCD.WriteAt ("Click to continue", 180, 200);
+    obama.Draw (100, 100);
+    LCD.Update();
+
+
+ while (!LCD.Touch (&x, &y)) //wait for a click anywhere, feed two trash variables
+{
+
+}
+    LCD.Clear();
+      obama.Draw (100, 100);
+       LCD.WriteAt ("Click to continue", 180, 200);
+    Sleep (500);
+    LCD.WriteLine ("You must save the city of columbus\nfrom the spotted lanternfly...");
+while (!LCD.Touch (&x, &y)) //each of these is just to wait for the user's click before continuing
+{
+
+}
+    LCD.Clear();
+      obama.Draw (100, 100);
+       LCD.WriteAt ("Click to continue", 180, 200);
+    Sleep (500);
+LCD.WriteLine ("They are harmless to you, but if they get past you\nthey will wreak havoc on the environment");
+
+
+while (!LCD.Touch (&x, &y))
+{
+
+}
+LCD.Clear();
+ LCD.WriteAt ("Click to continue", 180, 200);
+  obama.Draw (100, 100);
+Sleep (500);
+LCD.WriteLine ("Destroy them before it's too late!");
+while (!LCD.Touch (&x, &y))
+{
+
+}
+LCD.Clear ();
+ LCD.WriteAt ("Click to continue", 180, 200);
+  obama.Draw (100, 100);
+Sleep (500);
+LCD.WriteLine ("I am president Obamna");
+while (!LCD.Touch (&x, &y))
+{
+
+}
+LCD.Clear();
+ LCD.WriteAt ("Click to continue", 180, 200);
+ rocket.Draw (100, 100);
+ Sleep (500);
+ robot.play();
+ LCD.WriteLine ("Yes, president Obamna");
+ while (!LCD.Touch (&x, &y))
+{
+
+}
+    // This background will be worked on
+    //draw just the background
+    LCD.Clear();
+streetbackground.Draw(0,0);
+Sleep (1.0);
+LCD.SetFontColor (SCARLET);
+background_refresh (rocketx, rockety, lanternflyx, lanternflyy, lanternflyx2,lanternflyy2, enemy_hit,enemy_hit2,stage);
+    quit = 0;
+    int counter=0;
+
+/*FIRST WAVE*/
+
+
+int wave_over = 0;
+
+while (quit == 0)
+{
+     //at the start of each wave, set wave_over equal to zero. We only need a few lines of code to adjust conditions after the wave
+    while (wave_over == 0 && quit == 0) //sets up a loop that runs until a wave is complete, exits if the wave is complete or if the player chooses to quit
+    {
+    time_current = TimeNow();
+    time_difference = time_current - time_move;
+    enemy_timer = time_current - enemycdown;
+    shoot_cooldown = time_current - time_shoot;
+
+ // this should count the amount of cycles so from there we can move the enemies down
+
+    if (Keyboard.isPressed (KEY_ESCAPE))
+    {
+        quit = 1; //quit if escape is pressed and return to main menu
+    }
+
+
+
+         else if (Keyboard.isPressed (KEY_RIGHT) && rocketx < 270.00 && time_difference > .10) //checks if right key is being pressed
+    {
+        
+        rocketx = rocketx + move_increment; //increment x position
+ time_move = TimeNow();
+    }
+
+
+
+         else if (Keyboard.isPressed (KEY_LEFT) && rocketx > 20 &&time_difference > .10) //checks if left key is being pressed
+    {
+        
+        rocketx = rocketx - move_increment; //increment x position
+time_move = TimeNow();
+    }
+
+
+
+ else if (Keyboard.isPressed (KEY_UP) && rockety > 140 &&time_difference > .10) //checks if up key is being pressed
+    {
+        
+        rockety = rockety - move_increment; //increment y position
+       time_move = TimeNow();
+    }
+
+
+ else if (Keyboard.isPressed (KEY_DOWN) && rockety < 190 &&time_difference > .10)
+    {
+
+        rockety = rockety + move_increment; //increment x position
+       time_move = TimeNow();
+    }
+
+
+ else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .22) 
+    {
+        int g=Random.RandInt()%2;
+        if (g==0)
+        {
+              strongPEW.play();
+        }
+
+        else if(g == 1)
+        {
+            highPEW.play();
+        }
+
+        LCD.SetFontColor (GREEN);
+        LCD.DrawLine (rocketx + 26, rockety, rocketx + 26, 0);
+        LCD.DrawLine (rocketx + 23, rockety, rocketx + 23, 0);
+        
+        LCD.Update();
+        time_shoot = TimeNow();
+        
+
+        
+        /*Collision code*/ // make 2 collisions code for the second hit
+        if (
+            (
+                    (rocketx+26 > lanternflyx && rocketx+26 < lanternflyx+60) ||
+                    (rocketx+23 > lanternflyx && rocketx+23 < lanternflyx+60) 
+                    
+                )
+                &&
+                (rockety > lanternflyy + 30)  // checks if the beam is above the rocket and below the enemy bottom
+                &&
+                (enemy_hit <=8)
+            )
+            {
+                enemy_hit++;
+               
+                //play collision sound
+                hit.play ();
+            }
+          
+     if(stage ==2 ) // this will make sure it only happens when a new stage has appeared. should jump over this code then
+          {
+            if // this is the second collison hit
+            (
+             (
+                 (rocketx+26 > lanternflyx2-30 && rocketx+26 < lanternflyx2 + 30) ||
+                    (rocketx+23 > lanternflyx2-30 && rocketx+23 < lanternflyx2 + 30)
+             )
+             &&
+             (
+                (rockety>lanternflyy2) &&(enemy_hit2 <= 8)
+             )
+     
+            )  
+            { enemy_hit2++;
+            
+             hit.play();
+             }
+         }
+        }
+        
+        
+    //enemy collision
+    
+    
+    
+     if (lanternflyx > 260) //change direction and move enemies down
+    {
+        
+        direction = 2;
+        lanternflyx = lanternflyx - 20;
+        lanternflyy = lanternflyy + 30;
+        
+
+
+    }
+     if (lanternflyx2 > 260 && stage == 2)
+    {
+        lanternflyx2 = lanternflyx2 - 5;
+        lanternflyy2 = lanternflyy2 + 30;
+        direction2 = 2;
+    }
+    
+     if (direction == 1 && enemy_timer > move_cooldown && (enemy_hit <=8)) //this wil move the lanternflies right along the x axis
+        {
+            
+        lanternflyx = lanternflyx + 30;
+        // this is for the second group. I just made a whole another group of variables and hopefully it follows the first group well
+        enemycdown = TimeNow();
+        
+        }
+
+
+     if (direction2 == 1 && (enemy_timer > move_cooldown) && enemy_hit2 <=8 && stage == 2)
+    {
+lanternflyx2 = lanternflyx2+10;
+
+
+if (enemy_hit >= 8) //resets enemy cooldown here only if the first enemies have been defeated
+{
+enemycdown = TimeNow();
+}
+    }
+
+
+
+
+     if (direction == 2 && enemy_timer > move_cooldown && (enemy_hit <=8)) //this wil move the lanternflies right along the x axis
+        {
+            
+        lanternflyx = lanternflyx - 30;
+        // this is for the second group. I just made a whole another group of variables and hopefully it follows the first group well
+        enemycdown = TimeNow();
+        
+        }
+
+
+     if (direction2 == 2 && (enemy_timer > move_cooldown) && enemy_hit2 <=8 && stage == 2)
+    {
+lanternflyx2 = lanternflyx2-10;
+
+
+
+if (enemy_hit >= 8) //resets enemy cooldown here only if the first enemies have been defeated
+{
+enemycdown = TimeNow();
+}
+    }
+    
+     if (lanternflyx < 20) //change directions on the left
+        {
+        direction = 1; //reset back to right
+        lanternflyx = lanternflyx + 20;
+        lanternflyy = lanternflyy + 30; //move them down
+            
+        }
+    if (lanternflyx2 < 20 && stage ==2)
+    {
+        direction2 = 1;
+        lanternflyx2 = lanternflyx2 + 20;
+        lanternflyy2 = lanternflyy2 + 30;
+    }
+    
+  if (lanternflyy > 180|| lanternflyy2>180)//checks if the lanternflies have reached the bottom of the screen
+        {
+        endscreen(); //plays the endscreen
+        quit = 1;
+        break;
+        }
+    
+
+        
+        /*Wave completion*/
+    if (stage==1)
+    {
+        if (enemy_hit == 8)
+        {
+            waves_cleared ++; 
+            wave_over =1 ;
+        }
+    }
+    if (stage== 2) // this is for the completion for stage 2 and beyond 
+    {
+        if (enemy_hit >= 8 && enemy_hit2 >= 8)
+
+    {
+        
+        waves_cleared ++; //add 1 to the waves cleared for the stats
+        wave_over = 1; //breaks out of this loop, but quit is still set to 0, so a new wave will start
+
+    }
+}
+
+
+    Sleep (5); //slow down the loop
+        background_refresh (rocketx, rockety, lanternflyx, lanternflyy, lanternflyx2,lanternflyy2, enemy_hit,enemy_hit2,stage); //run background refresh to regenerate the environment with new positions
+} //end of the wave code
+
+
+if (quit==0)
+{
+    
+        /*Wave transition!*/
+background_refresh (rocketx, rockety, lanternflyx, lanternflyy,lanternflyx2,lanternflyy2, enemy_hit,enemy_hit2, stage); //call background refresh once to make sure that all elements of the background are updated
+LCD.WriteLine ("WAVE COMPLETE!");
+wave.play();
+obama.Draw (100, 100);
+LCD.Update();
+Sleep (1.0);
+move_cooldown = move_cooldown *0.9;//make the new wave move 10% faster than the last
+
+
+ // this will indicate when the next wave will change.
+if(move_cooldown <0.25) // this is a cap on move_cooldown. It gets too fast and no longer stays on the screen
+{
+    stage=2; // this will transition to stage 2  
+}
+lanternflyx = 120;
+lanternflyy = 0; //reset the lanternfly position
+lanternflyx2=180;
+lanternflyy2=0;
+background_refresh (rocketx, rockety, lanternflyx, lanternflyy,lanternflyx2,lanternflyy2, enemy_hit, enemy_hit2,stage); //get rid of the old background and re-generate the enemies for the next wave
+wave_over = 0; //resets the wave over variable so that the new wave will play
+enemy_hit = 0; //reset the enemy hit counter to refill health
+enemy_hit2 = 0; // resets the second enemy health to full
+} //end of if statement
+
+} //end of the main quit loop
+
+/*First wave complete! Now do the second wave, probably just */
+LCD.Clear(); //clear the game background and boot the main menu
+mainmenu();
+}
+
+void collectstats::STATS () // would need to make an exit game 
+{
+    int quit;
+    // Time Alive, Enter Name- deathscreen then enter name screen
+LCD.Clear ();
+LCD.SetBackgroundColor (BLUE);
+LCD.SetFontColor (WHITE);
+
+LCD.SetFontScale(1);
+/*Show collected stats*/
+LCD.SetFontScale(.5);
+LCD.WriteLine("\n\n\n\nFor the pervious run, the Stats for player are :");
+LCD.WriteLine(playername);
+LCD.WriteLine(" Time Alive is:");
+LCD.WriteLine(Time_alive);
+LCD.Update();
+// escape 
+LCD.Update();
+     Keyboard.waitSpecificKey(KEY_ESCAPE); //wait for excape button to be pressed
+        LCD.Clear(BLACK);
+mainmenu();
+    
+}
+void collectstats::endscreen()
+{
+    timeend=TimeNow();
+    Time_alive=timeend-timebegin; //collect time alive stats
+  /*Draw game over*/
+
+    int x, y,x2=50,y2=50;
+    LCD.Clear();
+    LCD.SetBackgroundColor(BLACK);
+    LCD.Clear();
+    skull.Draw(30,45);
+    LCD.SetFontColor(WHITE);
+    LCD.SetFontScale(1);
+gameover.play();
+    LCD.WriteLine("       GAME OVER\n     Click to continue");
+    LCD.Update();
+
+    while(!LCD.Touch(&x,&y))
+    {
+        
+    }
+
+    /*Draw stats collection screen*/
+    LCD.Clear();
+    LCD.SetBackgroundColor(BLACK);
+    LCD.SetFontColor(WHITE);
+    LCD.Write("Type your Initals");
+    LCD.DrawRectangle(50,50,100,20);
+    char key[4];
+    LCD.Update();
+    int i=0;
+    while(i<3)
+    {
+          
+                // this hopefully will collect the key. I gave up and have to brute force it now. Crying emoji crying emoji
+            Keyboard.waitAnyKey();
+           
+            if(Keyboard.isPressed(KEY_A))
+            {
+                key[i]='A';
+                LCD.WriteAt(key[i],x2,y2);
+                LCD.Update();
+
+            }
+
+            if(Keyboard.isPressed(KEY_B))
+            {key[i]='B';
+                LCD.WriteAt(key[i],x2,y2);
+             LCD.Update();
+            }
+            if(Keyboard.isPressed(KEY_C))
+            {
+                key[i]='C';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            if(Keyboard.isPressed(KEY_D))
+            {
+                key[i]='D';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            
+            if(Keyboard.isPressed(KEY_E))
+            {
+                key[i]='E';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            if(Keyboard.isPressed(KEY_F))
+            {
+                key[i]='F';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            if(Keyboard.isPressed(KEY_G))
+            {
+                key[i]='G';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            if(Keyboard.isPressed(KEY_H))
+            
+            {
+                key[i]='H';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            if(Keyboard.isPressed(KEY_I))
+            {
+                key[i]='I';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+
+            if(Keyboard.isPressed(KEY_J))
+            { key[i]='J';
+                LCD.WriteAt(key[i],x2,y2);
+             LCD.Update();
+            }
+
+            if(Keyboard.isPressed(KEY_K))
+            {
+                key[i]='K';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            if(Keyboard.isPressed(KEY_L))
+            {
+                key[i]='L';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            
+            if(Keyboard.isPressed(KEY_M))
+            {
+                key[i]='M';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            if(Keyboard.isPressed(KEY_N))
+           {
+            key[i]='N';
+            LCD.WriteAt(key[i],x2,y2);
+             LCD.Update();
+           }
+            if(Keyboard.isPressed(KEY_O))
+            {
+                key[i]='O';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            if(Keyboard.isPressed(KEY_P))
+            {key[i]='P';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            
+            if(Keyboard.isPressed(KEY_Q))
+            {
+                key[i]='Q';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            
+            if(Keyboard.isPressed(KEY_R))
+            {
+                key[i]='R';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            
+            if(Keyboard.isPressed(KEY_S))
+            {
+                key[i]='S';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            
+            if(Keyboard.isPressed(KEY_T))
+            {
+                key[i]='T';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            
+            if(Keyboard.isPressed(KEY_U))
+            
+            {
+                key[i]='U';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            if(Keyboard.isPressed(KEY_V))
+            {
+                key[i]='V';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            if(Keyboard.isPressed(KEY_W))
+            {
+                key[i]='W';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            
+            if(Keyboard.isPressed(KEY_X))
+            {
+                key[i]='X';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+            
+            if(Keyboard.isPressed(KEY_Y))
+           { key[i]='Y';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+           }
+            if(Keyboard.isPressed(KEY_Z))
+            {
+                key[i]='Z';
+                LCD.WriteAt(key[i],x2,y2);
+                 LCD.Update();
+            }
+           Keyboard.waitAnyKey();
+           
+
+           
+            x2 += 12;  // move to the right for next letter
+            Sleep(200);
+            i++;
+        
+        }
+        strcpy(playername,key);
+        while(!LCD.Touch(&x,&y))
+     {
+        
+     }
+ 
+          LCD.Update();
+    // collect name, send into Stats 
+    }
+      
