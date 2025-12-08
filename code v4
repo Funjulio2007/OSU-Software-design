@@ -167,6 +167,8 @@ void credits()
     LCD.SetFontColor (WHITE);
     LCD.SetFontScale(.5);
     LCD.WriteLine ("This game was made by \nChadwick Lucas and Lucas Clavijo\nThank you For Playing!");
+    LCD.WriteLine ("Audacity was used to record voicelines, music, and\n sound effects");
+    LCD.WriteLine ("Pixelart.io was used to make most of the pixel art\nChatGPT was used to generate the lanternfly sprite\nand the Obama sprite");
     // I want to some how put some music in
     LCD.SetFontScale(.5);
     LCD.WriteLine("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nReturn to menu,hit escape");
@@ -970,4 +972,3 @@ gameover.play();
           LCD.Update();
     // collect name, send into Stats 
     }
-  
