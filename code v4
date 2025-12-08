@@ -8,8 +8,8 @@
 #include <FEHRandom.h>
 #include <math.h>
 
-#define move_increment  30
-#define pi  3.14159265358979323
+#define move_increment  25
+
 //Protypes 
 void mainmenu();
 void tutorial();
@@ -61,6 +61,9 @@ FEHImage mainscreen;
 FEHImage obama;   
 FEHImage skull;   
 
+FEHSound wave ("wave_completed.wav");
+FEHSound robot ("robot_voice.wav");
+FEHSound gameover ("death_sound.wav");
 int main(){
     float x_position,y_position;
     float *xptr, *yptr; // put pointer 
@@ -102,7 +105,7 @@ while(valid==0)
 {
   // wait for a real touch event 
   while (!LCD.Touch (xptr, yptr)) { }
-  printf ("\nThe x-coordinate is %f \n The y-coordinate is %f\n", x_position, y_position);
+
 
 /*Wait for Touch*/
 
@@ -110,7 +113,7 @@ while(valid==0)
 
     if ( x_position > 160.00 && x_position <314.00 && y_position > 12.00 && y_position < 120.00) // this is for the tutorial
      {
-        printf ("Tutorial coordinates found, playing tutorial");
+        
         background1.restart();
         tutorial();
          
@@ -349,12 +352,12 @@ void enemiesmove(float  x_position, float y_position, float x_position2 , float 
 
 
 
-// THis is for the game its self 
+// This is for the game its self 
     void collectstats:: start () // this is in its sample mode. Need to add stuff 
 {
     int quit, waves_cleared;
     float x, y; //click trash variables
-    int direction = 1, enemy_hit = 0, enemy_hit2=0 ,stage=1;
+    int direction = 1, direction2=1, enemy_hit = 0, enemy_hit2=0 ,stage=1;
     float time_current, time_move, time_difference, enemy_timer, enemycdown, time_shoot, shoot_cooldown, move_cooldown = 0.5; /*set a move cooldown variable for the enemies*/;
 
     ;
@@ -368,7 +371,7 @@ timebegin = TimeNow();
 FEHSound hit ("laser_hit.wav");
     FEHSound highPEW("highPEW.wav");
     FEHSound strongPEW("strongProjectile.wav");
-    float rocketx = 120, rockety = 200,lanternflyx = 120,lanternflyy = 0, lanternflyx2=160, lanternflyy2=0;
+    float rocketx = 120, rockety = 200,lanternflyx = 120,lanternflyy = 0, lanternflyx2=200, lanternflyy2=0;
 
 highPEW.setVolume (0.3); //sets the volume for the rocket laser projectile sound effect
 strongPEW.setVolume (0.3);
@@ -429,6 +432,16 @@ while (!LCD.Touch (&x, &y))
 {
 
 }
+LCD.Clear();
+ LCD.WriteAt ("Click to continue", 180, 200);
+ rocket.Draw (100, 100);
+ Sleep (500);
+ robot.play();
+ LCD.WriteLine ("Yes, president Obamna");
+ while (!LCD.Touch (&x, &y))
+{
+
+}
     // This background will be worked on
     //draw just the background
     LCD.Clear();
@@ -443,6 +456,7 @@ background_refresh (rocketx, rockety, lanternflyx, lanternflyy, lanternflyx2,lan
 
 
 int wave_over = 0;
+
 while (quit == 0)
 {
      //at the start of each wave, set wave_over equal to zero. We only need a few lines of code to adjust conditions after the wave
@@ -462,7 +476,7 @@ while (quit == 0)
 
 
 
-        else if (Keyboard.isPressed (KEY_RIGHT) && rocketx < 270.00 && time_difference > .15) //checks if right key is being pressed
+         else if (Keyboard.isPressed (KEY_RIGHT) && rocketx < 270.00 && time_difference > .10) //checks if right key is being pressed
     {
         
         rocketx = rocketx + move_increment; //increment x position
@@ -471,7 +485,7 @@ while (quit == 0)
 
 
 
-        else if (Keyboard.isPressed (KEY_LEFT) && rocketx > 20 &&time_difference > .15) //checks if left key is being pressed
+         else if (Keyboard.isPressed (KEY_LEFT) && rocketx > 20 &&time_difference > .10) //checks if left key is being pressed
     {
         
         rocketx = rocketx - move_increment; //increment x position
@@ -480,7 +494,7 @@ time_move = TimeNow();
 
 
 
-else if (Keyboard.isPressed (KEY_UP) && rockety > 140 &&time_difference > .15) //checks if up key is being pressed
+ else if (Keyboard.isPressed (KEY_UP) && rockety > 140 &&time_difference > .10) //checks if up key is being pressed
     {
         
         rockety = rockety - move_increment; //increment y position
@@ -488,7 +502,7 @@ else if (Keyboard.isPressed (KEY_UP) && rockety > 140 &&time_difference > .15) /
     }
 
 
-else if (Keyboard.isPressed (KEY_DOWN) && rockety < 190 &&time_difference > .15)
+ else if (Keyboard.isPressed (KEY_DOWN) && rockety < 190 &&time_difference > .10)
     {
 
         rockety = rockety + move_increment; //increment x position
@@ -496,7 +510,7 @@ else if (Keyboard.isPressed (KEY_DOWN) && rockety < 190 &&time_difference > .15)
     }
 
 
-else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .20) 
+ else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .22) 
     {
         int g=Random.RandInt()%2;
         if (g==0)
@@ -532,8 +546,7 @@ else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .20)
             )
             {
                 enemy_hit++;
-                printf("Enemy hit!\n"); 
-                printf("%i for enemy 1 \n",enemy_hit);
+               
                 //play collision sound
                 hit.play ();
             }
@@ -543,8 +556,8 @@ else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .20)
             if // this is the second collison hit
             (
              (
-                 (rocketx+26 > lanternflyx2 && rocketx+26 < lanternflyx2+60) ||
-                    (rocketx+23 > lanternflyx2 && rocketx+23 < lanternflyx2+60)
+                 (rocketx+26 > lanternflyx2-30 && rocketx+26 < lanternflyx2 + 30) ||
+                    (rocketx+23 > lanternflyx2-30 && rocketx+23 < lanternflyx2 + 30)
              )
              &&
              (
@@ -553,8 +566,7 @@ else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .20)
      
             )  
             { enemy_hit2++;
-            printf("Enemy Hit 2 ");
-            printf("%i for enemy 2 \n",enemy_hit2);
+            
              hit.play();
              }
          }
@@ -565,53 +577,84 @@ else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .20)
     
     
     
-    else if (lanternflyx > 260) //change direction and move enemies down
+     if (lanternflyx > 260) //change direction and move enemies down
     {
         
         direction = 2;
         lanternflyx = lanternflyx - 20;
         lanternflyy = lanternflyy + 30;
-        // this is for the second group
-        if(stage==2){
-        lanternflyx2= lanternflyx2-5;
-        lanternflyy2=lanternflyy2+30; 
-        }
         
+
+
+    }
+     if (lanternflyx2 > 260 && stage == 2)
+    {
+        lanternflyx2 = lanternflyx2 - 5;
+        lanternflyy2 = lanternflyy2 + 30;
+        direction2 = 2;
     }
     
-    
-    else if (direction == 1 && enemy_timer > move_cooldown && (enemy_hit <=8||enemy_hit2<=8)) //this wil move the lanternflies right along the x axis
+     if (direction == 1 && enemy_timer > move_cooldown && (enemy_hit <=8)) //this wil move the lanternflies right along the x axis
         {
             
         lanternflyx = lanternflyx + 30;
-        if (stage==2){
-        lanternflyx2=lanternflyx2+10;} // this is for the second group. I just made a whole another group of variables and hopefully it follows the first group well
+        // this is for the second group. I just made a whole another group of variables and hopefully it follows the first group well
         enemycdown = TimeNow();
         
         }
-    
-    else if (direction == 2 && enemy_timer > move_cooldown && (enemy_hit <=8||enemy_hit2<=8)) //move lanternflies left along y-axis
+
+
+     if (direction2 == 1 && (enemy_timer > move_cooldown) && enemy_hit2 <=8 && stage == 2)
+    {
+lanternflyx2 = lanternflyx2+10;
+
+
+if (enemy_hit >= 8) //resets enemy cooldown here only if the first enemies have been defeated
+{
+enemycdown = TimeNow();
+}
+    }
+
+
+
+
+     if (direction == 2 && enemy_timer > move_cooldown && (enemy_hit <=8)) //this wil move the lanternflies right along the x axis
         {
             
-        lanternflyx = lanternflyx - 30; //move them to the right
-        if (stage==2){
-        lanternflyx2 = lanternflyx2-20;}
+        lanternflyx = lanternflyx - 30;
+        // this is for the second group. I just made a whole another group of variables and hopefully it follows the first group well
         enemycdown = TimeNow();
+        
         }
+
+
+     if (direction2 == 2 && (enemy_timer > move_cooldown) && enemy_hit2 <=8 && stage == 2)
+    {
+lanternflyx2 = lanternflyx2-10;
+
+
+
+if (enemy_hit >= 8) //resets enemy cooldown here only if the first enemies have been defeated
+{
+enemycdown = TimeNow();
+}
+    }
     
-    else if (lanternflyx < 20)
+     if (lanternflyx < 20) //change directions on the left
         {
         direction = 1; //reset back to right
         lanternflyx = lanternflyx + 20;
         lanternflyy = lanternflyy + 30; //move them down
-            if (stage==2){
-         lanternflyx2  = lanternflyx2 + 20;
-        lanternflyy2 = lanternflyy2 + 10;
-            }
+            
         }
+    if (lanternflyx2 < 20 && stage ==2)
+    {
+        direction2 = 1;
+        lanternflyx2 = lanternflyx2 + 20;
+        lanternflyy2 = lanternflyy2 + 30;
+    }
     
-    
-    else if (lanternflyy > 180|| lanternflyy2>180)//checks if the lanternflies have reached the bottom of the screen
+  if (lanternflyy > 180|| lanternflyy2>180)//checks if the lanternflies have reached the bottom of the screen
         {
         endscreen(); //plays the endscreen
         quit = 1;
@@ -634,7 +677,7 @@ else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .20)
         if (enemy_hit >= 8 && enemy_hit2 >= 8)
 
     {
-        printf("I am here");
+        
         waves_cleared ++; //add 1 to the waves cleared for the stats
         wave_over = 1; //breaks out of this loop, but quit is still set to 0, so a new wave will start
 
@@ -649,23 +692,25 @@ else if (Keyboard.isPressed (KEY_SPACE) && shoot_cooldown > .20)
 
 if (quit==0)
 {
-    printf( " stage is %i\n enemies hit 1 %i \n enemies hit 2 %i  ",stage, enemy_hit2, enemy_hit2);
+    
         /*Wave transition!*/
 background_refresh (rocketx, rockety, lanternflyx, lanternflyy,lanternflyx2,lanternflyy2, enemy_hit,enemy_hit2, stage); //call background refresh once to make sure that all elements of the background are updated
 LCD.WriteLine ("WAVE COMPLETE!");
+wave.play();
 obama.Draw (100, 100);
 LCD.Update();
 Sleep (1.0);
-move_cooldown = move_cooldown - 0.1;//make the new wave move faster than the last
+move_cooldown = move_cooldown *0.9;//make the new wave move 10% faster than the last
+
+
  // this will indicate when the next wave will change.
-if(move_cooldown<0) // this is a cap on move_cooldown. It gets too fast and no longer stays on the screen
+if(move_cooldown <0.25) // this is a cap on move_cooldown. It gets too fast and no longer stays on the screen
 {
-    move_cooldown=0;
     stage=2; // this will transition to stage 2  
 }
 lanternflyx = 120;
 lanternflyy = 0; //reset the lanternfly position
-lanternflyx2=160;
+lanternflyx2=180;
 lanternflyy2=0;
 background_refresh (rocketx, rockety, lanternflyx, lanternflyy,lanternflyx2,lanternflyy2, enemy_hit, enemy_hit2,stage); //get rid of the old background and re-generate the enemies for the next wave
 wave_over = 0; //resets the wave over variable so that the new wave will play
@@ -689,7 +734,7 @@ LCD.SetBackgroundColor (BLUE);
 LCD.SetFontColor (WHITE);
 
 LCD.SetFontScale(1);
-
+/*Show collected stats*/
 LCD.SetFontScale(.5);
 LCD.WriteLine("\n\n\n\nFor the pervious run, the Stats for player are :");
 LCD.WriteLine(playername);
@@ -706,24 +751,26 @@ mainmenu();
 void collectstats::endscreen()
 {
     timeend=TimeNow();
-    Time_alive=timeend-timebegin;
-  
+    Time_alive=timeend-timebegin; //collect time alive stats
+  /*Draw game over*/
+
     int x, y,x2=50,y2=50;
     LCD.Clear();
     LCD.SetBackgroundColor(BLACK);
     LCD.Clear();
-    // FEHImage skull; (removed local image - using global skull opened in main)
-    // skull.Open ("backgroundscreenskull.png"); (now opened once in main)
     skull.Draw(30,45);
     LCD.SetFontColor(WHITE);
     LCD.SetFontScale(1);
-
+gameover.play();
     LCD.WriteLine("       GAME OVER\n     Click to continue");
     LCD.Update();
+
     while(!LCD.Touch(&x,&y))
     {
         
     }
+
+    /*Draw stats collection screen*/
     LCD.Clear();
     LCD.SetBackgroundColor(BLACK);
     LCD.SetFontColor(WHITE);
